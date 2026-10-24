@@ -143,7 +143,7 @@ TRANSLATIONS = {
     },
 }
 
-st.set_page_config(page_title="PATHFINDER 2.0", page_icon="🧭", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="PATHFINDER", page_icon="🧭", layout="wide", initial_sidebar_state="expanded")
 
 if "theme" not in st.session_state:
     st.session_state.theme = "Dark"
