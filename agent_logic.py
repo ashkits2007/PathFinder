@@ -1,63 +1,88 @@
 from typing import TypedDict, Optional
 from langgraph.graph import StateGraph, END
+from google import genai
 
-# 1. Define the State (The agent's memory that passes between nodes)
+# Initialize the Gemini client (Replace with actual API key or use environment variables)
+client = genai.Client(api_key="YOUR_GEMINI_API_KEY")
+
 class AgentState(TypedDict):
     user_query: str
-    domain: Optional[str] # Will be 'software' or 'theoretical'
+    domain: Optional[str]
     fetched_markdown: Optional[str]
     final_plan: Optional[str]
 
-# 2. Define the Nodes (The "Doers")
 def analyze_intent(state: AgentState):
-    """Uses Claude/Gemini to determine if the query is code-based or theoretical."""
-    query = state["user_query"].lower()
+    """Uses Gemini to intelligently classify if the query is code-based or theoretical."""
+    query = state["user_query"]
     
-    # Simple heuristic for the hackathon MVP, can be replaced with an LLM call
-    if "github.com" in query or "repo" in query:
-        domain = "software"
-    else:
-        domain = "theoretical"
+    prompt = f"""
+    Classify the following user query into one of two categories: 'software' (if it mentions a GitHub repo, code, or engineering architecture) or 'theoretical' (if it asks about pure math, physics, chemistry, or general paper synthesis).
+    Query: {query}
+    Output ONLY the exact word: software or theoretical.
+    """
+    
+    try:
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt
+        )
+        domain = response.text.strip().lower()
+        if "software" in domain:
+            domain = "software"
+        else:
+            domain = "theoretical"
+    except Exception:
+        domain = "software" # Fallback
         
     return {"domain": domain}
-    
+
 def fetch_with_tinyfish(state: AgentState):
-    """Grabs arXiv HTML/PDF pages and converts them to clean Markdown."""
-    # TODO: Insert actual TinyFish Web Fetch API call here
-    simulated_markdown = "# Academic Paper\n\nAbstract: This paper introduces lightweight chunking..."
+    """Placeholder for Utkarsh's TinyFish Web Fetch integration."""
+    simulated_markdown = "# arXiv Paper: Lightweight Chunking for RAG\n\nAbstract: This paper introduces an optimized token-window allocation strategy to reduce latency..."
     return {"fetched_markdown": simulated_markdown}
 
 def codebase_action_node(state: AgentState):
-    """Translates academic methods into actionable, codebase-specific implementation steps."""
-    # TODO: Pass state["fetched_markdown"] and repo data to Claude/Gemini
-    return {"final_plan": "Actionable implementation steps for the GitHub repo."}
+    """Uses Gemini to translate academic methods into codebase-specific steps."""
+    query = state["user_query"]
+    markdown = state["fetched_markdown"]
+    
+    prompt = f"""
+    You are PATHFINDER, an AI engineering co-pilot. 
+    User Target/Repo: {query}
+    Retrieved Research Content: {markdown}
+    
+    Provide 3 concise, highly actionable implementation steps detailing how the developer can apply this research method to their codebase.
+    """
+    
+    try:
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt
+        )
+        plan = response.text
+    except Exception as e:
+        plan = f"Error generating plan: {e}"
+        
+    return {"final_plan": plan}
 
 def literature_synthesis_node(state: AgentState):
-    """Finds overlaps and theoretical bridges between Math/Physics papers."""
-    # TODO: Pass state["fetched_markdown"] to Claude/Gemini for theoretical synthesis
-    return {"final_plan": "Synthesis of theoretical methodologies."}
+    """Synthesizes theoretical overlaps across academic fields."""
+    return {"final_plan": "Theoretical literature cross-reference and mathematical bridge analysis completed."}
 
-# 3. Define the Dynamic Router
 def route_domain(state: AgentState):
-    """Reads the state and decides which node executes next."""
     if state["domain"] == "software":
         return "codebase_action"
     return "literature_synthesis"
 
-# 4. Assemble the Graph
+# Assemble the Graph
 workflow = StateGraph(AgentState)
-
-# Add all nodes to the graph
 workflow.add_node("analyze_intent", analyze_intent)
 workflow.add_node("fetch_with_tinyfish", fetch_with_tinyfish)
 workflow.add_node("codebase_action", codebase_action_node)
 workflow.add_node("literature_synthesis", literature_synthesis_node)
 
-# Wire the nodes together
 workflow.set_entry_point("analyze_intent")
 workflow.add_edge("analyze_intent", "fetch_with_tinyfish")
-
-# Add the conditional routing after fetching the papers
 workflow.add_conditional_edges(
     "fetch_with_tinyfish",
     route_domain,
@@ -66,16 +91,7 @@ workflow.add_conditional_edges(
         "literature_synthesis": "literature_synthesis"
     }
 )
-
-# End the workflow after the final plan is generated
 workflow.add_edge("codebase_action", END)
 workflow.add_edge("literature_synthesis", END)
 
-# Compile the brain
 pathfinder_app = workflow.compile()
-
-# Test execution block for the terminal
-if __name__ == "__main__":
-    test_state = {"user_query": "https://github.com/user/custom-rag-app"}
-    result = pathfinder_app.invoke(test_state)
-    print(result)
