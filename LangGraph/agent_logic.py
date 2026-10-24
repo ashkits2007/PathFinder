@@ -3,7 +3,7 @@ from langgraph.graph import StateGraph, END
 from google import genai
 
 # Initialize the Gemini client (Replace with actual API key or use environment variables)
-client = genai.Client(api_key= "AIzaSyBq8BBJoiq3DyTS3KdqXNHD8dP3YNdSZlY")
+client = genai.Client(api_key= "YOUR_API_KEY")
 
 class AgentState(TypedDict):
     user_query: str
