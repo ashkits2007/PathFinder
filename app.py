@@ -141,9 +141,55 @@ TRANSLATIONS = {
         "settings": "Darstellung und Sprache", "theme": "Darstellung", "dark": "Dunkel", "light": "Hell",
         "repo_optional": "Für theoretische Fragen ist kein Repository nötig.", "status": "Status",
     },
+    "Mandarin Chinese": {
+        "tagline": "从研究到实现",
+        "headline": "将研究转化为可运行的代码。",
+        "intro": "将研究问题与代码仓库关联，获取可执行的实施计划。",
+        "workspace": "工作区", "prompt": "你想改进什么？",
+        "prompt_help": "描述你想应用的研究思路、问题或技术。",
+        "prompt_placeholder": "例如：使用混合搜索提高检索准确率……",
+        "repo": "GitHub 仓库（可选）", "repo_placeholder": "https://github.com/owner/repository",
+        "language": "回复语言", "run": "运行 Pathfinder", "running": "Pathfinder 正在分析你的请求……",
+        "results": "分析结果", "ready": "准备开始探索",
+        "ready_desc": "研究计划、智能体流程和研究笔记将在这里显示。",
+        "plan": "生成的计划", "trace": "智能体流程", "domain": "请求类型",
+        "raw": "研究资料", "download": "下载结果", "clear": "清空工作区",
+        "empty_prompt": "请先输入问题，再运行智能体。",
+        "bad_repo": "这似乎不是有效的 GitHub 仓库地址。请使用 https://github.com/owner/repository。",
+        "connection": "无法连接 FastAPI 后端。请在另一个终端运行：uvicorn main:app --reload --port 8000",
+        "timeout": "请求耗时过长。请检查后端或模型是否仍在运行，然后重试。",
+        "success": "分析完成", "software": "软件 / 实现", "theoretical": "研究 / 理论",
+        "history": "最近运行记录", "no_history": "最近的运行记录会显示在这里。",
+        "copied_hint": "可以使用代码块中的复制控件，或下载完整结果。",
+        "settings": "外观与语言", "theme": "外观", "dark": "深色", "light": "浅色",
+        "repo_optional": "理论类问题无需提供代码仓库。", "status": "状态",
+    },
+    "Japanese": {
+        "tagline": "研究から実装へ",
+        "headline": "研究を実際に動くコードへ。",
+        "intro": "研究課題をリポジトリと結び付け、実行可能な実装計画を作成します。",
+        "workspace": "ワークスペース", "prompt": "何を改善したいですか？",
+        "prompt_help": "適用したい研究アイデア、問題、技術について説明してください。",
+        "prompt_placeholder": "例：ハイブリッド検索で検索精度を向上させる……",
+        "repo": "GitHub リポジトリ（任意）", "repo_placeholder": "https://github.com/owner/repository",
+        "language": "回答言語", "run": "Pathfinder を実行", "running": "Pathfinder がリクエストを分析しています……",
+        "results": "分析結果", "ready": "準備完了",
+        "ready_desc": "研究計画、エージェントの処理経路、研究メモがここに表示されます。",
+        "plan": "生成された計画", "trace": "エージェントの処理経路", "domain": "分類された意図",
+        "raw": "取得した研究メモ", "download": "結果をダウンロード", "clear": "ワークスペースをクリア",
+        "empty_prompt": "エージェントを実行する前に、プロンプトを入力してください。",
+        "bad_repo": "有効な GitHub リポジトリ URL ではないようです。https://github.com/owner/repository を使用してください。",
+        "connection": "FastAPI バックエンドに接続できません。別のターミナルで実行してください：uvicorn main:app --reload --port 8000",
+        "timeout": "リクエストがタイムアウトしました。バックエンドやモデルの状態を確認して再試行してください。",
+        "success": "分析が完了しました", "software": "ソフトウェア / 実装", "theoretical": "研究 / 理論",
+        "history": "最近の実行", "no_history": "最近の実行履歴がここに表示されます。",
+        "copied_hint": "コードブロックのコピー機能を使うか、結果全体をダウンロードしてください。",
+        "settings": "外観と言語", "theme": "外観", "dark": "ダーク", "light": "ライト",
+        "repo_optional": "理論的な質問ではリポジトリは任意です。", "status": "ステータス",
+    },
 }
 
-st.set_page_config(page_title="PATHFINDER", page_icon="🧭", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="PATHFINDER 2.0", page_icon="🧭", layout="wide", initial_sidebar_state="expanded")
 
 if "theme" not in st.session_state:
     st.session_state.theme = "Dark"
@@ -208,7 +254,17 @@ with st.sidebar:
     """, unsafe_allow_html=True)
     st.markdown(f"#### {t['settings']}")
     st.selectbox(t["theme"], ["Dark", "Light"], key="theme", format_func=lambda x: t["dark"] if x == "Dark" else t["light"])
-    st.selectbox(t["language"], list(TRANSLATIONS.keys()), key="language")
+    # Keep Mandarin and Japanese near the top so they are easy to find.
+    language_options = [
+        "English",
+        "Mandarin Chinese",
+        "Japanese",
+        "Hindi",
+        "Spanish",
+        "French",
+        "German",
+    ]
+    st.selectbox(t["language"], language_options, key="language")
     st.markdown("---")
     st.markdown(f"#### {t['workspace']}")
     with st.form("pathfinder_form", clear_on_submit=False):
