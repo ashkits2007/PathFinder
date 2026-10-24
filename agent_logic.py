@@ -20,6 +20,17 @@ def analyze_intent(state: AgentState):
         domain = "theoretical"
         
     return {"domain": domain}
+    
+def fetch_with_tinyfish(state: AgentState):
+    """Grabs arXiv HTML/PDF pages and converts them to clean Markdown."""
+    # TODO: Insert actual TinyFish Web Fetch API call here
+    simulated_markdown = "# Academic Paper\n\nAbstract: This paper introduces lightweight chunking..."
+    return {"fetched_markdown": simulated_markdown}
+
+def codebase_action_node(state: AgentState):
+    """Translates academic methods into actionable, codebase-specific implementation steps."""
+    # TODO: Pass state["fetched_markdown"] and repo data to Claude/Gemini
+    return {"final_plan": "Actionable implementation steps for the GitHub repo."}
 
 # 3. Assemble the Graph
 workflow = StateGraph(AgentState)
