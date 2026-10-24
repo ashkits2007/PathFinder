@@ -32,5 +32,17 @@ def codebase_action_node(state: AgentState):
     # TODO: Pass state["fetched_markdown"] and repo data to Claude/Gemini
     return {"final_plan": "Actionable implementation steps for the GitHub repo."}
 
-# 3. Assemble the Graph
+def literature_synthesis_node(state: AgentState):
+    """Finds overlaps and theoretical bridges between Math/Physics papers."""
+    # TODO: Pass state["fetched_markdown"] to Claude/Gemini for theoretical synthesis
+    return {"final_plan": "Synthesis of theoretical methodologies."}
+
+# 3. Define the Dynamic Router
+def route_domain(state: AgentState):
+    """Reads the state and decides which node executes next."""
+    if state["domain"] == "software":
+        return "codebase_action"
+    return "literature_synthesis"
+
+# 4. Assemble the Graph
 workflow = StateGraph(AgentState)
