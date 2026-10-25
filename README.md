@@ -110,17 +110,17 @@ PathFinder is being designed with the following principles in mind:
 
 ##  Development Roadmap
 
-- [ ] Complete the PathFinder frontend and input flows.
-- [ ] Build the FastAPI backend and workflow interface.
-- [ ] Implement software-versus-literature task routing.
-- [ ] Integrate GitHub repository profiling for supported repositories.
-- [ ] Integrate TinyFish-based research discovery and content retrieval.
-- [ ] Implement evidence-grounded synthesis and source attribution.
-- [ ] Generate actionable software implementation plans.
-- [ ] Generate downloadable literature PDFs with references.
-- [ ] Add live workflow progress and clear error states.
-- [ ] Evaluate results using representative software and literature problems.
-- [ ] Explore research caching and semantic retrieval.
+-  Complete the PathFinder frontend and input flows.
+-  Build the FastAPI backend and workflow interface.
+-  Implement software-versus-literature task routing.
+-  Integrate GitHub repository profiling for supported repositories.
+-  Integrate TinyFish-based research discovery and content retrieval.
+-  Implement evidence-grounded synthesis and source attribution.
+-  Generate actionable software implementation plans.
+-  Generate downloadable literature PDFs with references.
+-  Add live workflow progress and clear error states.
+-  Evaluate results using representative software and literature problems.
+-  Explore research caching and semantic retrieval.
 
 ##  Vision
 
