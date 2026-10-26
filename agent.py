@@ -115,3 +115,73 @@ def literature_synthesis_node(state: AgentState):
         f"User's research goal: {state['query']}\nRetrieved context: {state['fetched_markdown']}\n\n"
         f"Synthesize the relevant theoretical concepts in {language}."
     )}
+
+
+workflow = StateGraph(AgentState)
+workflow.add_node("analyze_intent", analyze_intent)
+workflow.add_node("fetch_with_tinyfish", fetch_with_tinyfish)
+workflow.add_node("codebase_action_node", codebase_action_node)
+workflow.add_node("literature_synthesis_node", literature_synthesis_node)
+workflow.set_entry_point("analyze_intent")
+workflow.add_edge("analyze_intent", "fetch_with_tinyfish")
+workflow.add_conditional_edges("fetch_with_tinyfish", route_domain)
+workflow.add_edge("codebase_action_node", END)
+workflow.add_edge("literature_synthesis_node", END)
+agent_app = workflow.compile()
+
+
+def load_documents(file_paths: Sequence[str]) -> list[Document]:
+    """Extract supported PDF, text, and PowerPoint files into LangChain documents."""
+    documents: list[Document] = []
+    for file_path in file_paths:
+        path = Path(file_path)
+        suffix = path.suffix.lower()
+        if not path.is_file() or suffix not in ALLOWED_EXTENSIONS:
+            continue
+        if suffix == ".pdf":
+            documents.extend(PyPDFLoader(str(path)).load())
+        elif suffix == ".txt":
+            text = path.read_text(encoding="utf-8", errors="replace").strip()
+            if text:
+                documents.append(Document(page_content=text, metadata={"source": path.name}))
+        else:
+            presentation = Presentation(str(path))
+            for slide_number, slide in enumerate(presentation.slides, start=1):
+                parts = [shape.text.strip() for shape in slide.shapes
+                         if getattr(shape, "has_text_frame", False) and shape.text.strip()]
+                if parts:
+                    documents.append(Document(page_content="\n".join(parts), metadata={"source": path.name, "slide": slide_number}))
+    return documents
+
+
+def format_docs(documents: Sequence[Document]) -> str:
+    return "\n\n".join(document.page_content for document in documents)
+
+
+def process_documents_and_run_chain(
+    query: str,
+    repo_url: str | None = None,
+    pdf_paths: Sequence[str] | None = None,
+    response_language: str = "English",
+    documents: Sequence[Document] | None = None,
+) -> str:
+    """Answer a literature query against uploaded documents using local Ollama."""
+    full_query = query.strip()
+    if repo_url:
+        full_query += f"\n\nReference document URL: {repo_url}"
+    source_documents = list(documents) if documents is not None else load_documents(pdf_paths or [])
+    llm = ChatOllama(model="llama3.1", temperature=0.2)
+    if not source_documents:
+        return str(llm.invoke(f"Answer in {response_language}.\n\n{full_query[:12000]}").content)
+    chunks = RecursiveCharacterTextSplitter(chunk_size=900, chunk_overlap=120).split_documents(source_documents)
+    vectorstore = Chroma.from_documents(documents=chunks, embedding=OllamaEmbeddings(model="all-minilm"))
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
+    prompt = ChatPromptTemplate.from_template(
+        "Answer using the supplied context. State when it is insufficient. Respond in {language}.\n\n"
+        "Context:\n{context}\n\nQuestion:\n{question}"
+    )
+    chain = (
+        {"context": retriever | format_docs, "question": RunnablePassthrough(), "language": lambda _: response_language}
+        | prompt | llm | StrOutputParser()
+    )
+    return chain.invoke(full_query[:12000])
