@@ -68,8 +68,8 @@ The following technologies are proposed for the system architecture. The final s
 
 | Component | Technology | Purpose |
 |---|---|---|
-| Frontend | Next.js, React, JavaScript, Tailwind CSS | User interface and analysis dashboard |
-| Backend API | Python, FastAPI | Input validation, workflow execution, and result delivery |
+| Frontend | Streamlit | User interface and analysis dashboard |
+| Backend API | Python, FastAPI, TinyFishAPI| Input validation, workflow execution, and result delivery |
 | Agent orchestration | LangGraph | Coordinating multi-stage research workflows |
 | LLM | Gemini API or another supported LLM | Evidence synthesis, reasoning, and structured output generation |
 | Web research | TinyFish | Web search, content retrieval, and browser-based research workflows |
